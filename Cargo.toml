@@ -1,0 +1,46 @@
+[package]
+name = "nusa"
+version = "0.1.0"
+edition = "2021"
+description = "Notch hidup untuk macOS — musik, lirik, fokus, air, to-do, shelf, clipboard, waktu sholat"
+default-run = "nusa"
+
+[dependencies]
+# egui hanya menggambar ulang ketika ada perubahan (reactive), dirender lewat OpenGL (glow).
+# Tanpa webview, tanpa accesskit, tanpa font sistem tambahan -> RAM kecil.
+eframe = { version = "0.37", default-features = false, features = ["glow", "default_fonts", "clipboard"] }
+egui = "0.37"
+raw-window-handle = "0.6"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+dirs = "6"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+starship-battery = "0.12"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-foundation = "0.3"
+objc2-app-kit = "0.3"
+block2 = "0.6"
+
+# Hanya untuk development di Linux: `cargo check --features macos-check`
+# men-type-check modul macOS memakai binding objc2 (runtime GNUstep, tidak di-link).
+[target.'cfg(not(target_os = "macos"))'.dependencies]
+objc2 = { version = "0.6", features = ["gnustep-2-1"], optional = true }
+objc2-foundation = { version = "0.3", optional = true }
+objc2-app-kit = { version = "0.3", optional = true }
+block2 = { version = "0.6", features = ["gnustep-2-1"], optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+eframe = { version = "0.37", default-features = false, features = ["glow", "default_fonts", "clipboard", "x11"] }
+
+[features]
+macos-check = ["dep:objc2", "dep:objc2-foundation", "dep:objc2-app-kit", "dep:block2"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true
